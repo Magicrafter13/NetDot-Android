@@ -33,6 +33,7 @@
 #*.log
 
 # Android Studio
+/app/release/
 #/*/build/
 #/*/local.properties
 #/*/out
@@ -64,13 +65,13 @@
 
 # User-specific configurations
 # - Going to ignore the entire .idea directory until something comes up that makes me change my mind...
-/.idea
+/.idea/
 
 # Legacy Eclipse project files
-#.classpath
-#.project
+/app/.classpath
+.project
 #.cproject
-#.settings/
+.settings/
 
 # Package Files #
 #*.war
