@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/ui_nav"
+    app:startDestination="@id/menuFragment">
+
+    <fragment
+        android:id="@+id/menuFragment"
+        android:name="net.matthewrease.netdot.MenuFragment"
+        android:label="fragment_server"
+        tools:layout="@layout/fragment_menu" >
+        <action
+            android:id="@+id/action_serverFragment_to_gameFragment"
+            app:destination="@id/gameFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/gameFragment"
+        android:name="net.matthewrease.netdot.GameFragment"
+        android:label="game_fragment"
+        tools:layout="@layout/game_fragment" >
+        <action
+            android:id="@+id/action_gameFragment_to_chatFragment"
+            app:destination="@id/chatFragment" />
+        <action
+            android:id="@+id/action_gameFragment_to_playersFragment"
+            app:destination="@id/playersFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/serverFragment"
+        android:name="net.matthewrease.netdot.ServerFragment"
+        android:label="fragment_server"
+        tools:layout="@layout/fragment_server" >
+        <action
+            android:id="@+id/action_serverFragment_to_clientFragment"
+            app:destination="@id/clientFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/clientFragment"
+        android:name="net.matthewrease.netdot.ClientFragment"
+        android:label="fragment_client"
+        tools:layout="@layout/fragment_client" >
+        <action
+            android:id="@+id/action_clientFragment_to_serverFragment"
+            app:destination="@id/serverFragment" />
+        <action
+            android:id="@+id/action_clientFragment_to_optionsFragment"
+            app:destination="@id/optionsFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/optionsFragment"
+        android:name="net.matthewrease.netdot.OptionsFragment"
+        android:label="fragment_options"
+        tools:layout="@layout/fragment_options" >
+        <action
+            android:id="@+id/action_optionsFragment_to_clientFragment"
+            app:destination="@id/clientFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/chatFragment"
+        android:name="net.matthewrease.netdot.ChatFragment"
+        android:label="fragment_chat"
+        tools:layout="@layout/fragment_chat" />
+    <fragment
+        android:id="@+id/playersFragment"
+        android:name="net.matthewrease.netdot.PlayersFragment"
+        android:label="fragment_players"
+        tools:layout="@layout/fragment_players" >
+        <action
+            android:id="@+id/action_playersFragment_to_colorFragment"
+            app:destination="@id/colorFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/colorFragment"
+        android:name="net.matthewrease.netdot.ColorFragment"
+        android:label="fragment_color"
+        tools:layout="@layout/fragment_color" />
+</navigation>

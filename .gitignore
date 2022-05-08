@@ -1,0 +1,83 @@
+#.cxx
+
+### AndroidStudio ###
+# Covers files to be ignored for android development using Android Studio.
+
+# Built application files
+#*.apk
+#*.ap_
+#*.aab
+
+# Files for the ART/Dalvik VM
+#*.dex
+
+# Java class files
+#*.class
+
+# Generated files
+#bin/
+#gen/
+#out/
+
+# Gradle files
+/.gradle/
+#build/
+
+# Signing files
+.signing/
+
+# Local configuration file (sdk path, etc)
+/local.properties
+
+# Log Files
+#*.log
+
+# Android Studio
+#/*/build/
+#/*/local.properties
+#/*/out
+#/*/*/build
+#/*/*/production
+#captures/
+#.navigation/
+#*.ipr
+#*~
+#*.swp
+
+# Keystore files
+#*.jks
+#*.keystore
+
+# Android Patch
+#gen-external-apklibs
+
+# External native build folder generated in Android Studio 2.2 and later
+#.externalNativeBuild
+
+# NDK
+#obj/
+
+# IntelliJ IDEA
+#*.iml
+#*.iws
+#/out/
+
+# User-specific configurations
+# - Going to ignore the entire .idea directory until something comes up that makes me change my mind...
+/.idea
+
+# Legacy Eclipse project files
+#.classpath
+#.project
+#.cproject
+#.settings/
+
+# Package Files #
+#*.war
+#*.ear
+
+## Plugin-specific files:
+
+### AndroidStudio Patch ###
+
+!/gradle/wrapper/gradle-wrapper.jar
