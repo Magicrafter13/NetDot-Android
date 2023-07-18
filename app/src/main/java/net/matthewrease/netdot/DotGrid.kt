@@ -109,10 +109,8 @@ class DotGrid(context: Context, attrs: AttributeSet?): View(context, attrs), Ges
             .filter { it !in users }
             .forEach { playerBoxPaint.remove(it) }
         users.forEach { (id, user) ->
-            if (!user.disconnected) {
-                playerLinePaint[id] = Paint(noLinePaint).also { it.color = user.color }
-                playerBoxPaint[id] = Paint(noBoxPaint).also { it.color = user.color }
-            }
+            playerLinePaint[id] = Paint(noLinePaint).also { it.color = if (user.disconnected) Color.BLACK else user.color }
+            playerBoxPaint[id] = Paint(noBoxPaint).also { it.color = if (user.disconnected) Color.BLACK else user.color }
         }
     }
 

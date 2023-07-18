@@ -157,20 +157,20 @@ class PlayersView(context: Context, attrs: AttributeSet?): ViewGroup(context, at
     fun updateUsers(users: HashMap<Int, User>) {
         println("INFO PLAYERS UPDATED ${users.size} ${users[0]?.color}")
         // Mark old entries for removal
-        val old = userData.filterKeys { !users.containsKey(it) }
-        old .forEach { it.value.stale = true }
+        val old = userData.filterKeys { !users.containsKey(it) || users[it]!!.disconnected }
+        old.forEach { it.value.stale = true }
         // Update existing entries
         userData.forEach { (id, data) ->
             val player = users[id]
             if (player != null) {
-                data.name = player.name
+                data.name = player.name + if (player.disconnected) " [DISCONNECTED]" else ""
                 data.color = player.color
                 data.label.text = player.name
                 data.view.setBackgroundColor(player.color)
             }
         }
         // Add new entries
-        val new = users.filterKeys { !userData.containsKey(it) }
+        val new = users.filterKeys { !userData.containsKey(it) && !users[it]!!.disconnected }
         new.forEach { (id, user) ->
             userData[id] = PlayerInfo(
                 -1,

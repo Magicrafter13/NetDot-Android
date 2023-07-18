@@ -122,7 +122,7 @@ class ClientManager: Manager() {
                         catch (e: Exception) {
                             return broadcast("info-malformed Could not parse clientID!")
                         }
-                        game.users.remove(userID)
+                        game.users[userID]?.disconnected = true
                         update()
                     }
                     "chat" -> {

@@ -12,7 +12,7 @@ class User {
     var playing: Boolean = false
     var score: Int = 0
     var disconnected: Boolean = false
-    var ready: Boolean = false
+    var ready: Boolean = true
 
     var client: Client? = null
 

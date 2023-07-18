@@ -53,7 +53,7 @@ class ServerManager: Manager() {
         // TODO: only add spectators that are ready
         //println("Moving spectators into free slots...");
         val freeSpace: Int = maxPlayers - game.users.filterValues { user -> !user.disconnected && user.playing }.size
-        val spectators: List<User> = game.users.filterValues { user -> !user.disconnected && !user.playing }.map { (_, user) -> user }
+        val spectators: List<User> = game.users.filterValues { user -> !user.disconnected && !user.playing && user.ready }.map { (_, user) -> user }
         spectators.subList(0, if (maxPlayers == 0) spectators.size else freeSpace).forEach { user ->
             user.playing = true
             broadcast("game-join ${user.id}")
@@ -152,7 +152,7 @@ class ServerManager: Manager() {
                                 userAdd(user)
                                 println("Sending network data")
                                 client.send( game.users
-                                    .filterValues { !it.disconnected }
+                                    //.filterValues { !it.disconnected }
                                     .map { (_, user) -> "network-add ${user.id} ${user.color} ${user.name}" }
                                     .joinToString("\n"))
                                 client.send("game-size ${game.grid.width} ${game.grid.height}")
@@ -172,6 +172,10 @@ class ServerManager: Manager() {
                                         client.send("game-current ${game.currentPlayer.value}")
                                     //TODO("Finish this.")
                                 }
+                                client.send( game.users
+                                    .filterValues { it.disconnected }
+                                    .map { (_, user) -> "network-remove ${user.id}" }
+                                    .joinToString("\n"))
                                 //TODO("Add player to network.")
                             }
                         }
@@ -542,7 +546,7 @@ class ServerManager: Manager() {
                         if (isValidated) {
                             if (game.currentPlayer.value == user.id)
                                 nextPlayer(user)
-                            game.users.remove(user.id)
+                            user.disconnected = true
                             broadcast("network-remove ${user.id}")
                             game.updatePlayers()
                         }

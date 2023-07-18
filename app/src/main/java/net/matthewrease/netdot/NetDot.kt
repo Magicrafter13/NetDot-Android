@@ -71,7 +71,7 @@ class NetDot(
      * @param player The player being renamed
      * @param newName The player's New Name
      * @see NetDot
-     * @see Player
+     * @see User
      */
     fun playerRename(player: User, newName: String) {
         player.name = newName
