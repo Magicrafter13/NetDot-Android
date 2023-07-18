@@ -55,12 +55,7 @@ class PlayersFragment : Fragment() {
         val color = view.findViewById<PlayerSquare>(R.id.playerSquare)
         val info = view.findViewById<PlayersView>(R.id.playersView)
         val id = gameState.clientID
-        name.setText(when {
-            id < -2 -> "Unknown client ID error!"
-            id == -2 -> "Spectator..."
-            id == -1 -> "Error, still in queue!"
-            else -> gameState.players.value[id]!!.name
-        })
+        name.setText(gameState.user.name)
         name.setOnEditorActionListener(this::nameEditorActionListener)
         // Color picker
         color.setOnClickListener {
@@ -69,18 +64,18 @@ class PlayersFragment : Fragment() {
         }
 
         // Update grid when player data changes
-        var playerCount: Int = gameState.game.players.size
-        gameState.players.observe(viewLifecycleOwner) { players ->
+        var userCount: Int = gameState.game.users.size
+        gameState.users.observe(viewLifecycleOwner) { users ->
             // Get our color (if we have one)
             val curId = gameState.clientID
             if (curId >= 0)
-                color.setBackgroundColor(players[curId]?.color ?: Color.BLACK)
+                color.setBackgroundColor(users[curId]?.color ?: Color.BLACK)
             // Update player name/box grid
-            info.updatePlayers(players)
+            info.updateUsers(users)
             // Update master server is player count has changed
-            if (players.size != playerCount) {
-                playerCount = players.size
-                gameState.updatePlayers(playerCount)
+            if (users.size != userCount) {
+                userCount = users.size
+                gameState.updatePlayers(userCount)
             }
         }
     }

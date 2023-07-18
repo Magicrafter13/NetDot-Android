@@ -30,6 +30,15 @@
                 android:minHeight="48dp"
                 android:text="@string/randomize_starting_player" />
 
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/fastClients"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:text="@string/faster_clients"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
             <TextView
                 style="@style/sectionLabel"
                 android:layout_width="match_parent"

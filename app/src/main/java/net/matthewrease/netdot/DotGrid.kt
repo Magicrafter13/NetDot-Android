@@ -10,6 +10,7 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import androidx.core.view.GestureDetectorCompat
+import net.matthewrease.netdot.data.User
 import net.matthewrease.netdot.grid.GridPoint
 import net.matthewrease.netdot.shapes.Dot
 import kotlin.math.abs
@@ -95,14 +96,23 @@ class DotGrid(context: Context, attrs: AttributeSet?): View(context, attrs), Ges
     fun updateDots(dots: HashMap<GridPoint, Dot>) {
         println("DOTS UPDATED ${dots.size}")
         ownedDots = dots
+        println("Owned lines: ${dots.map { (_, dot) -> (if (dot.down.owner != null) 1 else 0) + (if (dot.right.owner != null) 1 else 0) }.sum()}")
         invalidate()
     }
 
-    fun updatePlayers(players: HashMap<Int, Player>) {
-        println("PLAYERS UPDATED ${players.size} ${players[0]?.color}")
-        players.forEach { (playerID, player) ->
-            playerLinePaint[playerID] = Paint(noLinePaint).also { it.color = player.color }
-            playerBoxPaint[playerID] = Paint(noBoxPaint).also { it.color = player.color }
+    fun updateUsers(users: HashMap<Int, User>) {
+        println("PLAYERS UPDATED ${users.size} ${users[0]?.color}")
+        playerLinePaint.keys
+            .filter { it !in users }
+            .forEach { playerLinePaint.remove(it) }
+        playerBoxPaint.keys
+            .filter { it !in users }
+            .forEach { playerBoxPaint.remove(it) }
+        users.forEach { (id, user) ->
+            if (!user.disconnected) {
+                playerLinePaint[id] = Paint(noLinePaint).also { it.color = user.color }
+                playerBoxPaint[id] = Paint(noBoxPaint).also { it.color = user.color }
+            }
         }
     }
 
@@ -141,12 +151,16 @@ class DotGrid(context: Context, attrs: AttributeSet?): View(context, attrs), Ges
                     gridPoint.set(column, row)
                     // Draw horizontal lines
                     if (column < gridWidth) {
+                        if (ownedDots[gridPoint] == null)
+                            println("DOT AT $gridPoint IS NULL")
+                        else if (ownedDots[gridPoint]!!.right.owner != null)
+                            println("DOT AT $gridPoint HAS RIGHT OWNER - PAINT IS ${playerLinePaint[ownedDots[gridPoint]!!.right.owner!!.id]}")
                         drawLine(
                             (safeX + column * boxLength).toFloat() + boxLength * 0.2f,
                             (safeY + row * boxLength).toFloat(),
                             (safeX + (column + 1) * boxLength).toFloat() - boxLength * 0.2f,
                             (safeY + row * boxLength).toFloat(),
-                            playerLinePaint[ownedDots[gridPoint]?.right?.getOwner()] ?: noLinePaint
+                            playerLinePaint[ownedDots[gridPoint]?.right?.owner?.id] ?: noLinePaint
                         )
                     }
                     // Draw vertical lines
@@ -156,20 +170,20 @@ class DotGrid(context: Context, attrs: AttributeSet?): View(context, attrs), Ges
                             (safeY + row * boxLength).toFloat() + boxLength * 0.2f,
                             (safeX + column * boxLength).toFloat(),
                             (safeY + (row + 1) * boxLength).toFloat() - boxLength * 0.2f,
-                            playerLinePaint[ownedDots[gridPoint]?.down?.getOwner()] ?: noLinePaint
+                            playerLinePaint[ownedDots[gridPoint]?.down?.owner?.id] ?: noLinePaint
                         )
                     }
                     // Draw box
                     if (column < gridWidth && row < gridHeight) {
-                        val owner = ownedDots[gridPoint]?.box?.getOwner()
-                        if (owner != null && owner >= 0)
+                        ownedDots[gridPoint]?.box?.owner?.also { owner ->
                             drawRect(
                                 (safeX + column * boxLength).toFloat() + boxLength * 0.2f,
                                 (safeY + row * boxLength).toFloat() + boxLength * 0.2f,
                                 (safeX + (column + 1) * boxLength).toFloat() - boxLength * 0.2f,
                                 (safeY + (row + 1) * boxLength).toFloat() - boxLength * 0.2f,
-                                playerBoxPaint[owner] ?: noBoxPaint
+                                playerBoxPaint[owner.id] ?: noBoxPaint
                             )
+                        }
                     }
                 }
             }

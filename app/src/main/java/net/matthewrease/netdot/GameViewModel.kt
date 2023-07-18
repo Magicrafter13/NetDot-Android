@@ -1,10 +1,13 @@
 package net.matthewrease.netdot
 
+import android.net.nsd.NsdManager
+import android.net.nsd.NsdServiceInfo
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import net.matthewrease.netdot.coms.ClientManager
 import net.matthewrease.netdot.coms.Server
 import net.matthewrease.netdot.coms.ServerManager
+import net.matthewrease.netdot.data.User
 import net.matthewrease.netdot.grid.Grid
 import net.matthewrease.netdot.live.*
 
@@ -36,6 +39,11 @@ class GameViewModel: ViewModel() {
     val name = LiveString("")
     val randomizeStart = LiveBoolean(false)
     val server = ServerManager.LiveServer()
+    val serviceInfo = LiveNsd(NsdServiceInfo().apply {
+        serviceName = "NetDot"
+        serviceType = "_netdot._tcp"
+        port = NetDot.PORT
+    })
 
     val clientID: Int
         get() = if (this.isServer.value) 0 else client.value.getID()
@@ -49,8 +57,10 @@ class GameViewModel: ViewModel() {
         get() = client.value.uiDims
     val manager: Manager
         get() = (if (this.isServer.value) server.value else client.value)
-    val players: LivePlayers
-        get() = game.uiPlayers
+    val user: User
+        get() = (if (this.isServer.value) server.value else client.value).user
+    val users: LiveUsers
+        get() = game.uiUsers
     val started: Boolean
         get() = game.started
 
@@ -72,7 +82,7 @@ class GameViewModel: ViewModel() {
         if (isServer.value) {
             if (advertise.value)
                 masterServer.value?.send("reset")
-            server.value.run { close() }
+            server.value.run { stop() }
             println("STOPPING SERVER")
         }
         else {
@@ -116,8 +126,13 @@ class GameViewModel: ViewModel() {
             }
             master!!.send("name ${name.value}\nmax $max\ncurrent 1")
         }
-        server.value.run { open(Grid.Dimension(dimX.value!!, dimY.value!!), max, randomizeStart.value) }
+        server.value.run { start(Grid.Dimension(dimX.value!!, dimY.value!!), max, randomizeStart.value) }
         println("STARTING SERVER")
+        /*nsd.value.apply {
+            serviceName = "NetDot"
+            serviceType = "_netdot._tcp"
+            port = NetDot.PORT
+        }*/
     }
 
     fun stopGame() {

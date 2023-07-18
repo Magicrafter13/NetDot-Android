@@ -3,6 +3,7 @@ package net.matthewrease.netdot.coms
 import androidx.lifecycle.LiveData
 import net.matthewrease.netdot.Manager
 import net.matthewrease.netdot.NetDot
+import net.matthewrease.netdot.data.User
 import net.matthewrease.netdot.grid.Grid
 import net.matthewrease.netdot.grid.GridPoint
 import net.matthewrease.netdot.live.LiveGridDimension
@@ -27,174 +28,20 @@ class ClientManager: Manager() {
         val vertical: Boolean
 
         when (command[0]) {
-            "player" -> {
-                val playerID: Int
-                try {
-                    playerID = words[1].toInt()
-                }
-                catch (e: Exception) {
-                    return broadcast("info-malformed Could not parse playerID")
-                }
-                val player = game.players[playerID]
+            "request" -> {
                 when (command[1]) {
-                    "add" -> {
-                        game.playerAdd(playerID, message.substring(words[0].length + words[1].length + 2), null)
-                        if (playerID >= game.nextID)
-                            game.nextID = playerID + 1
+                    "info" -> {
+                        broadcast("info-version ${NetDot.VMAJOR} ${NetDot.VMINOR}\nrequest-info")
+                        //TODO("Send features")
                     }
-                    "rename" -> {
-                        // Don't rename ourselves (that already should have happened)
-                        if (player != null)
-                            game.playerRename(player, message.substring(words[0].length + words[1].length + 2))
+                    "deny" -> {
+                        //println("Server denied request with reason: " + message.substring(words[0].length + 1))
+                        TODO("Inform user and quit to menu")
                     }
-                    "color" -> {
-                        val RGB: Int
-                        try {
-                            RGB = words[2].toInt()
-                        }
-                        catch (e: Exception) {
-                            return broadcast("info-malformed Could not parse RGB color!")
-                        }
-                        player?.color = RGB
-                        player?.customColor = true
-                        game.updatePlayers()
-                    }
-                    "remove" -> {
-                        // If the server has disconnected us (or itself!) return to the menu
-                        if (playerID == clientID || playerID == 0)
-                            server?.disconnected()
-                        game.playerRemove(playerID)
-                        update()
-                    }
-                    "line" -> {
-                        vertical = words[2] == "ver"
-                        if (!vertical && words[2] != "hor")
-                            return broadcast("info-malformed Could not parse line direction!")
-                        val point: GridPoint
-                        try {
-                            point = GridPoint.parsePoint(words[3])
-                        }
-                        catch (e: Exception) {
-                            return broadcast("info-malformed Could not parse GridPoint!")
-                        }
-                        val dot = game.dots[point]
-                        (if (vertical) dot?.down else dot?.right)?.setOwner(playerID)
-                        //updatePlayers()
-                        game.updateDots()
-                    }
-                    "box" -> {
-                        val point: GridPoint
-                        try {
-                            point = GridPoint.parsePoint(words[2])
-                        }
-                        catch (e: Exception) {
-                            return broadcast("info-malformed Could not parse GridPoint!")
-                        }
-                        player?.add()
-                        game.dots[point]?.box?.setOwner(playerID)
-                        game.updatePlayers()
-                    }
-                    else -> broadcast("unknown-player")
-                }
-            }
-            "grid" -> {
-                when (command[1]) {
-                    "size" -> {
-                        val size: Grid.Dimension
-                        try {
-                            size = Grid.parseDimension(words[1])
-                        }
-                        catch (e: Exception) {
-                            return broadcast("info-malformed Could not parse grid dimensions!")
-                        }
-                        game.resize(size)
-                        uiDims.postValue(Grid.Dimension(size.width, size.height))
-                    }
-                    "reset" -> game.reset()
-                    else -> broadcast("unknown-grid")
-                }
-            }
-            "network" -> {
-                when (command[1]) {
-                    "assign" -> {
-                        val playerID: Int
-                        try {
-                            playerID = words[1].toInt()
-                        }
-                        catch (e: Exception) {
-                            return broadcast("info-malformed Could not parse clientID!")
-                        }
-                        clientID = playerID
-                        when (clientID) {
-                            -2 -> println("Assigned to spectator mode.")
-                            -1 -> println("Placed in queue, waiting for further instructions from the server...")
-                            else -> println("Joining game with player ID $clientID")
-                        }
-                    }
-                    "busy" -> {
-                        println("The server is already in the middle of a game. Asking to spectate.")
-                        broadcast("request-spectate")
-                    }
-                    "chat" -> {
-                        val playerID: Int
-                        try {
-                            playerID = words[1].toInt()
-                        }
-                        catch (e: Exception) {
-                            return broadcast("info-malformed Could not parse playerID!")
-                        }
-                        game.receiveChat(playerID, message.substring(words[0].length + words[1].length + 2))
-                    }
-                    "disconnect" -> close()
-                    "full" -> {
-                        println("The server is full! Asking to spectate.")
-                        broadcast("request-spectate")
-                    }
-                    else -> broadcast("unknown-network")
-                }
-            }
-            "game" -> {
-                when (command[1]) {
-                    "start", "restart" -> gameRestart()
-                    "play" -> {
-                        val playerID: Int
-                        try {
-                            playerID = words[1].toInt()
-                        }
-                        catch (e: Exception) {
-                            return broadcast("info-malformed Could not parse playerID!")
-                        }
-                        val point: GridPoint
-                        try {
-                            point = GridPoint.parsePoint(words[2])
-                        }
-                        catch (e: Exception) {
-                            return broadcast("info-malformed Could not parse GridPoint!")
-                        }
-                        vertical = words[3] == "ver"
-                        if (!vertical && words[3] != "hor")
-                            return broadcast("info-malformed Could not parse line direction!")
-                        game.makeMove(playerID, point, vertical)
-                    }
-                    "stop" -> gameStop()
-                    "current" -> {
-                        val playerID: Int
-                        try {
-                            playerID = words[1].toInt()
-                        }
-                        catch (e: Exception) {
-                            return broadcast("info-malformed Could not parse current player!")
-                        }
-                        game.currentPlayer.postValue(playerID)
-                        //updateText()
-                    }
-                    else -> broadcast("unknown-game")
                 }
             }
             "info" -> {
                 when (command[1]) {
-                    "warn" -> println("Received warning: " + message.substring(words[0].length))
-                    "malformed" -> println("Whatever you just did sent a pretty bad request to the server, please report this error!")
                     "version" -> {
                         val version: Array<Int> = arrayOf(0, 0)
                         try {
@@ -202,6 +49,7 @@ class ClientManager: Manager() {
                             version[1] = words[2].toInt()
                         }
                         catch (e: Exception) {
+                            TODO("Quit to menu")
                             return broadcast("info-malformed Could not parse version numbers!")
                         }
                         println("Server is running version " + version[0] + "." + version[1])
@@ -209,23 +57,269 @@ class ClientManager: Manager() {
                             println("Server version is incompatible with client version (${NetDot.VMAJOR}.${NetDot.VMINOR})!")
                             //serverOut.close();
                         }
+                        else broadcast("request-join")
                     }
-                    else -> broadcast("unknown-info")
+                    "motd" -> {} // TODO: use this somewhere in the UI?
+                    "features" -> {}
                 }
             }
-            "request" -> {
+            "feature" -> {
                 when (command[1]) {
-                    "deny" -> println("Server denied request with reason: " + message.substring(words[0].length + 1))
-                    "info" -> broadcast("info-version ${NetDot.VMAJOR} ${NetDot.VMINOR}")
+                    "enable" -> {}
+                    "disable" -> {}
                 }
             }
-            "unknown" -> {
+            "vote" -> {
                 when (command[1]) {
-                    "" -> println("Server did not recognize command group!")
-                    else -> println("Server did not recognize ${command[1]} directive!")
+                    "start" -> {}
+                    "end" -> {}
+                    "enable" -> {}
+                    "disable" -> {}
                 }
             }
-            else -> broadcast("unknown-")
+            "network" -> {
+                when (command[1]) {
+                    "assign" -> {
+                        val userID: Int
+                        try {
+                            userID = words[1].toInt()
+                        }
+                        catch (e: Exception) {
+                            TODO("Quit to menu.")
+                            return broadcast("info-malformed Could not parse clientID!")
+                        }
+                        clientID = userID
+                        // TODO: show a toast to the user perhaps?
+                    }
+                    "announce" -> { game.receiveChat(-3, message.substring(words[0].length + 1)) } // TODO: change to an announcement function
+                    "add" -> {
+                        val userID: Int
+                        try {
+                            userID = words[1].toInt()
+                        }
+                        catch (e: Exception) {
+                            return broadcast("info-malformed Could not parse clientID!")
+                        }
+                        val color: Int
+                        try {
+                            color = words[2].toInt()
+                        }
+                        catch (e: Exception) {
+                            return broadcast("info-malformed Could not parse color!")
+                        }
+                        game.users[userID] = User().also {
+                            it.id = userID
+                            it.color = color
+                            it.name = message.substring(words[0].length + words[1].length + words[2].length + 3)
+                        }
+                        game.updatePlayers()
+                    }
+                    "remove" -> {
+                        val userID: Int
+                        try {
+                            userID = words[1].toInt()
+                        }
+                        catch (e: Exception) {
+                            return broadcast("info-malformed Could not parse clientID!")
+                        }
+                        game.users.remove(userID)
+                        update()
+                    }
+                    "chat" -> {
+                        val userID: Int
+                        try {
+                            userID = words[1].toInt()
+                        }
+                        catch (e: Exception) {
+                            return broadcast("info-malformed Could not parse playerID!")
+                        }
+                        game.receiveChat(userID, message.substring(words[0].length + words[1].length + 2))
+                    }
+                    "ping" -> { return broadcast("network-pong") }
+                    "pong" -> {} // TODO: something
+                }
+            }
+            "user" -> {
+                val userID: Int
+                try {
+                    userID = words[1].toInt()
+                }
+                catch (e: Exception) {
+                    return broadcast("info-malformed Could not parse clientID!")
+                }
+                val user = game.users[userID] ?: return // TODO: bug in server or bug in us? inform them?
+                when (command[1]) {
+                    "name" -> {
+                        user.name = message.substring(words[0].length + words[1].length + 2)
+                        game.updatePlayers()
+                    }
+                    "color" -> {
+                        val color: Int
+                        try {
+                            color = words[2].toInt()
+                        }
+                        catch (e: Exception) {
+                            return broadcast("info-malformed Could not parse RGB color!")
+                        }
+                        user.color = color
+                        game.updatePlayers()
+                    }
+                }
+            }
+            "game" -> {
+                when (command[1]) {
+                    "ready" -> {
+                        val userID: Int
+                        try {
+                            userID = words[1].toInt()
+                        }
+                        catch (e: Exception) {
+                            return broadcast("info-malformed Could not parse playerID!")
+                        }
+                        game.users[userID]?.also { user -> user.ready = true }
+                    }
+                    "notready" -> {
+                        val userID: Int
+                        try {
+                            userID = words[1].toInt()
+                        }
+                        catch (e: Exception) {
+                            return broadcast("info-malformed Could not parse playerID!")
+                        }
+                        game.users[userID]?.also { user -> user.ready = false }
+                    }
+                    "start" -> gameRestart()
+                    "stop" -> gameStop()
+                    "leave" -> {
+                        val userID: Int
+                        try {
+                            userID = words[1].toInt()
+                        }
+                        catch (e: Exception) {
+                            return broadcast("info-malformed Could not parse playerID!")
+                        }
+                        game.users[userID]?.also { user -> user.playing = false }
+                    }
+                    "join" -> {
+                        val userID: Int
+                        try {
+                            userID = words[1].toInt()
+                        }
+                        catch (e: Exception) {
+                            return broadcast("info-malformed Could not parse playerID!")
+                        }
+                        game.users[userID]?.also { user -> user.playing = true }
+                    }
+                    "size" -> {
+                        val width: Int
+                        try {
+                            width = words[1].toInt()
+                        }
+                        catch (e: Exception) {
+                            return broadcast("info-malformed Could not parse grid dimensions!")
+                        }
+                        val height: Int
+                        try {
+                            height = words[2].toInt()
+                        }
+                        catch (e: Exception) {
+                            return broadcast("info-malformed Could not parse grid dimensions!")
+                        }
+                        val size = Grid.Dimension(width, height)
+                        game.resize(size)
+                        uiDims.postValue(size)
+                    }
+                    "line" -> {
+                        val userID: Int
+                        try {
+                            userID = words[1].toInt()
+                        }
+                        catch (e: Exception) {
+                            return broadcast("info-malformed Could not parse playerID!")
+                        }
+                        val x: Int
+                        try {
+                            x = words[2].toInt()
+                        }
+                        catch (e: Exception) {
+                            return broadcast("info-malformed Could not parse GridPoint!")
+                        }
+                        val y: Int
+                        try {
+                            y = words[3].toInt()
+                        }
+                        catch (e: Exception) {
+                            return broadcast("info-malformed Could not parse GridPoint!")
+                        }
+                        val point = GridPoint(x, y)
+                        vertical = words[4] == "ver"
+                        if (!vertical && words[4] != "hor")
+                            return broadcast("info-malformed Could not parse line direction!")
+                        if (point in game.grid) {
+                            println("In grid")
+                            println("There are ${game.dots.size} dots")
+                            game.dots[point]?.also { dot ->
+                                println("Dot exists")
+                                game.users[userID]?.also { user ->
+                                    println("User exists")
+                                    println("dot.${if (vertical) "down" else "right"}.owner = ${(if (vertical) dot.down else dot.right).owner}")
+                                    (if (vertical) dot.down else dot.right).owner = user
+                                    println("dot.${if (vertical) "down" else "right"}.owner = ${(if (vertical) dot.down else dot.right).owner}")
+                                    game.updateDots()
+                                }
+                            }
+                        }
+                    }
+                    "box" -> {
+                        val userID: Int
+                        try {
+                            userID = words[1].toInt()
+                        }
+                        catch (e: Exception) {
+                            return broadcast("info-malformed Could not parse playerID!")
+                        }
+                        val x: Int
+                        try {
+                            x = words[2].toInt()
+                        }
+                        catch (e: Exception) {
+                            return broadcast("info-malformed Could not parse GridPoint!")
+                        }
+                        val y: Int
+                        try {
+                            y = words[3].toInt()
+                        }
+                        catch (e: Exception) {
+                            return broadcast("info-malformed Could not parse GridPoint!")
+                        }
+                        val point = GridPoint(x, y)
+                        if (point in game.grid)
+                            game.dots[point]?.also { dot ->
+                                game.users[userID]?.also { user ->
+                                    dot.box.owner = user
+                                    ++user.score
+                                    // Check if the game is over
+                                    if (game.users.values.sumOf { _user -> _user.score } == game.grid.maxSpaces) {
+                                        game.finished = true
+                                        game.currentPlayer.postValue(-1)
+                                    }
+                                    game.updatePlayers()
+                                }
+                            }
+                    }
+                    "current" -> {
+                        val userID: Int
+                        try {
+                            userID = words[1].toInt()
+                        }
+                        catch (e: Exception) {
+                            return broadcast("info-malformed Could not parse current player!")
+                        }
+                        game.currentPlayer.postValue(userID)
+                        //updateText()
+                    }
+                }
+            }
         }
     }
 
@@ -265,11 +359,14 @@ class ClientManager: Manager() {
         game.finished = false
         game.currentPlayer.postValue(-1)
 
-        game.players.forEach { (playerID, player) ->
-            if (player.disconnected)
-                game.players.remove(playerID)
-            else
-                player.reset()
+        // Remove disconnected users
+        game.users
+            .filterValues { user -> user.disconnected }.keys
+            .forEach { id -> game.users.remove(id) }
+        // Reset all users game data
+        game.users.values.forEach { user ->
+            user.playing = false
+            user.reset()
         }
 
         game.dots.forEach { (_, dot) -> dot.reset() }
@@ -285,10 +382,10 @@ class ClientManager: Manager() {
     fun open(quit: () -> Unit, address: String) {
         gameStop()
 
-        game.players.clear()
+        game.users.clear()
 
         server = object: Server(address, NetDot.PORT) {
-            override fun connected() = broadcast("info-version ${NetDot.VMAJOR} ${NetDot.VMINOR}\nrequest-join")
+            override fun connected() {} //broadcast("info-version ${NetDot.VMAJOR} ${NetDot.VMINOR}\nrequest-join")
             override fun disconnected() = quit()
             override fun receive(message: String) = serverMessage(message)
         }
@@ -301,15 +398,15 @@ class ClientManager: Manager() {
 
     override fun sendChat(message: String) = broadcast("network-chat $message")
 
-    override fun setColor(color: Int) = broadcast("player-color $color")
+    override fun setColor(color: Int) = broadcast("user-color $color")
 
-    override fun setName(name: String) = broadcast("player-rename $name")
+    override fun setName(name: String) = broadcast("user-name $name")
 
     fun tryMove(column: Int, row: Int, vertical: Boolean) {
         if (game.started) {
             if (!game.finished) {
                 if (clientID == game.currentPlayer.value) {
-                    broadcast("game-play $column,$row ${if (vertical) "ver" else "hor"}")
+                    broadcast("game-line $column $row ${if (vertical) "ver" else "hor"}")
                 }
                 else println("It's not your turn.")
             }

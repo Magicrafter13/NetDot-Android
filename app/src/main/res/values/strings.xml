@@ -135,4 +135,7 @@
     <string name="game_label">- Game -</string>
     <string name="randomize_starting_player">Randomize Starting Player</string>
     <string name="server_list_description">List of servers from master server browser</string>
+    <string name="faster_clients">Faster Clients (Experimental)</string>
+    <string name="join">Join</string>
+    <string name="local_label">- Local Network -</string>
 </resources>

@@ -10,6 +10,7 @@ import android.graphics.Color
 import android.util.AttributeSet
 import android.view.ViewGroup
 import android.widget.TextView
+import net.matthewrease.netdot.data.User
 import net.matthewrease.netdot.ui.PlayerSquare
 import kotlin.math.ceil
 //import kotlin.math.min
@@ -36,7 +37,7 @@ class PlayersView(context: Context, attrs: AttributeSet?): ViewGroup(context, at
     //private val bounds = Rect()
     //private val defTextPaint: Paint = Paint()
     //private val playerTextPaint = HashMap<Int, Paint>()
-    private val playerData = HashMap<Int, PlayerInfo>()
+    private val userData = HashMap<Int, PlayerInfo>()
 
     private var rows: Int = 0
     private var columns: Int = 0
@@ -46,14 +47,21 @@ class PlayersView(context: Context, attrs: AttributeSet?): ViewGroup(context, at
     private var squareParams = LayoutParams(0, 0)
 
     private fun recalculate(w: Int) {
-        rows = (playerData.size - 1) / (if (portrait) MAX_PLAYERS_PER_ROW_PORTRAIT else MAX_PLAYERS_PER_ROW_LANDSCAPE) + 1
-        columns = (playerData.size - 1) / rows + 1
-        playersPerRow = ceil(playerData.size.toFloat() / rows).toInt()
-        boxLength = w / playersPerRow
-        textParams.width = boxLength
-        textParams.height = (boxLength * 0.25f).toInt()
-        squareParams.width = boxLength
-        squareParams.height = boxLength
+        if (userData.size == 0) {
+            rows = 0
+            columns = 0
+            playersPerRow = 0
+        }
+        else {
+            rows = (userData.size - 1) / (if (portrait) MAX_PLAYERS_PER_ROW_PORTRAIT else MAX_PLAYERS_PER_ROW_LANDSCAPE) + 1
+            columns = (userData.size - 1) / rows + 1
+            playersPerRow = ceil(userData.size.toFloat() / rows).toInt()
+            boxLength = w / playersPerRow
+            textParams.width = boxLength
+            textParams.height = (boxLength * 0.25f).toInt()
+            squareParams.width = boxLength
+            squareParams.height = boxLength
+        }
     }
 
     /*override fun onDraw(canvas: Canvas) {
@@ -75,20 +83,20 @@ class PlayersView(context: Context, attrs: AttributeSet?): ViewGroup(context, at
 
     override fun onLayout(p0: Boolean, p1: Int, p2: Int, p3: Int, p4: Int) {
         // Remove old views
-        playerData
+        userData
             .filter { (_, data) -> data.stale }
             .forEach { (id, data) ->
                 removeViewInLayout(data.label)
                 removeViewInLayout(data.view)
                 //removeDetachedView(data.view, false)
-                playerData.remove(id)
+                userData.remove(id)
             }
 
         // Update grid layout
         recalculate(p3 - p1)
 
         // Reposition all views
-        playerData.forEach { (_, data) ->
+        userData.forEach { (_, data) ->
             //val column: Int = if (portrait) index % playersPerRow else index / playersPerColumn
             //val row: Int = if (portrait) index / playersPerRow else index % playersPerColumn
             /*with (playerTextPaint[id]) {
@@ -146,14 +154,14 @@ class PlayersView(context: Context, attrs: AttributeSet?): ViewGroup(context, at
         recalculate(w)
     }
 
-    fun updatePlayers(players: HashMap<Int, Player>) {
-        println("INFO PLAYERS UPDATED ${players.size} ${players[0]?.color}")
+    fun updateUsers(users: HashMap<Int, User>) {
+        println("INFO PLAYERS UPDATED ${users.size} ${users[0]?.color}")
         // Mark old entries for removal
-        val old = playerData.filterKeys { !players.containsKey(it) }
+        val old = userData.filterKeys { !users.containsKey(it) }
         old .forEach { it.value.stale = true }
         // Update existing entries
-        playerData.forEach { (id, data) ->
-            val player = players[id]
+        userData.forEach { (id, data) ->
+            val player = users[id]
             if (player != null) {
                 data.name = player.name
                 data.color = player.color
@@ -162,22 +170,22 @@ class PlayersView(context: Context, attrs: AttributeSet?): ViewGroup(context, at
             }
         }
         // Add new entries
-        val new = players.filterKeys { !playerData.containsKey(it) }
-        new.forEach { (id, player) ->
-            playerData[id] = PlayerInfo(
+        val new = users.filterKeys { !userData.containsKey(it) }
+        new.forEach { (id, user) ->
+            userData[id] = PlayerInfo(
                 -1,
-                player.name,
-                player.color,
+                user.name,
+                user.color,
                 TextView(context),
                 PlayerSquare(context, null)
             ).also {
                 it.label.maxLines = 1
-                it.label.text = player.name
-                it.view.setBackgroundColor(player.color)
+                it.label.text = user.name
+                it.view.setBackgroundColor(user.color)
             }
         }
         // Update indices
-        playerData
+        userData
             .filter { (_, data) -> !data.stale }
             .toSortedMap()
             .values
@@ -192,9 +200,14 @@ class PlayersView(context: Context, attrs: AttributeSet?): ViewGroup(context, at
         // FOR DEBUG ONLY
         val debugView = 16
         if (debugView > 0) {
-            val map = HashMap<Int, Player>()
+            val map = HashMap<Int, User>()
             for (i in 0 until debugView)
-                map[i] = Player(if (i == 0) "Server" else "Client $i", null).also { it.color = Color.HSVToColor(floatArrayOf(i * 360.0f / debugView, 0.85f, 0.90f)) }
+                map[i] = User().also {
+                    with (it) {
+                        color = Color.HSVToColor(floatArrayOf(i * 360.0f / debugView, 0.85f, 0.90f))
+                        name = if (i == 0) "Server" else "Client $i"
+                    }
+                }
                 /*map[i] = PlayerInfo(
                     i,
                     if (i == 0) "Server" else "Client $i",
@@ -202,7 +215,7 @@ class PlayersView(context: Context, attrs: AttributeSet?): ViewGroup(context, at
                     TextView(context),
                     PlayerSquare(context, null)
                 )*/
-            updatePlayers(map)
+            updateUsers(map)
             //requestLayout()
         }
 

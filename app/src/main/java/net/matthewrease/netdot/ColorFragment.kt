@@ -33,11 +33,11 @@ class ColorFragment : Fragment() {
         }
 
         // Update master server if player count changes
-        var playerCount: Int = gameState.game.players.size
-        gameState.players.observe(viewLifecycleOwner) { players ->
-            if (players.size != playerCount) {
-                playerCount = players.size
-                gameState.updatePlayers(playerCount)
+        var userCount: Int = gameState.game.users.size
+        gameState.users.observe(viewLifecycleOwner) { users ->
+            if (users.size != userCount) {
+                userCount = users.size
+                gameState.updatePlayers(userCount)
             }
         }
     }

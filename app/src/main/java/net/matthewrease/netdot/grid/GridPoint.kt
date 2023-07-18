@@ -51,7 +51,7 @@ class GridPoint(column: Int, row: Int) : Point() {
         = (other is GridPoint) && other.x == x && other.y == y
 
     override fun toString(): String
-        = "$x,$y"
+        = "$x $y"
 
     companion object {
         fun parsePoint(point: String): GridPoint {

@@ -31,11 +31,12 @@
             android:layout_marginEnd="8dp"
             android:clickable="true"
             android:contentDescription="@string/open_chat_screen"
+            android:focusable="true"
             android:src="@android:drawable/stat_notify_chat"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            android:focusable="true" />
+            tools:ignore="ImageContrastCheck" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <net.matthewrease.netdot.DotGrid
@@ -61,7 +62,8 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/playerInfoButton"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            tools:visibility="visible" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/playerInfoButton"

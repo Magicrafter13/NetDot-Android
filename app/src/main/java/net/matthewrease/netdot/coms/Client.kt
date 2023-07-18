@@ -1,5 +1,6 @@
 package net.matthewrease.netdot.coms
 
+import java.io.IOException
 import java.io.PrintWriter
 import java.net.Socket
 import java.util.Scanner
@@ -13,12 +14,10 @@ import kotlin.concurrent.thread
 abstract class Client(// Initial socket for connection to the client
     private val sock: Socket
 ): Thread() {
+    private val inbox = LinkedBlockingQueue<String>()  // Queue for inbound messages
     private val outbox = LinkedBlockingQueue<String>() // Queue for outbound messages
 
     private var validated: Boolean = false // Whether or not this client has been validated
-
-    var disconnect: String = "" // Command to receive when disconnecting
-    var clientID: Int = -1      // Unique ID for this player
 
     val isValidated: Boolean
         get() = validated
@@ -28,19 +27,24 @@ abstract class Client(// Initial socket for connection to the client
      */
     fun close() {
         try {
+            sock.shutdownInput()
+            sock.shutdownOutput()
             sock.close()
         }
-        catch (e: Exception) {
+        catch (e: IOException) {
             println("Unable to close client socket...")
             e.printStackTrace()
         }
     }
 
+    abstract fun connected()
+
+    abstract fun disconnected()
+
     /**
-     * Fires when the client sends a message.
-     * @param message A single line (without the newline terminator)
+     * Get the next message in the queue (or wait for a new one).
      */
-    abstract fun receive(message: String)
+    fun receive(): String = inbox.take()
 
     /**
      * Queues a message to send to the client.
@@ -94,11 +98,13 @@ abstract class Client(// Initial socket for connection to the client
             return sock.close()
         }
 
+        connected()
         while (clientIn.hasNextLine())
-            receive(clientIn.nextLine())
+            inbox.add(clientIn.nextLine())
+        disconnected()
+
         clientIn.close()
         clientOut.close()
         close()
-        receive(disconnect)
     }
 }

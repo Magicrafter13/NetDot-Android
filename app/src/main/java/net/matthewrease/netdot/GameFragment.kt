@@ -68,23 +68,23 @@ class GameFragment : Fragment() {
         }
 
         // Observers
-        var playerCount: Int = gameState.game.players.size
+        var userCount: Int = gameState.game.users.size
         gameState.dots.observe(viewLifecycleOwner) { dots -> grid.updateDots(dots) }
-        gameState.players.observe(viewLifecycleOwner) { players ->
+        gameState.users.observe(viewLifecycleOwner) { users ->
             // Update grid
-            grid.updatePlayers(players)
+            grid.updateUsers(users)
             // Update text
             if (gameState.started) {
                 if (gameState.finished)
                     gameState.game.mostBoxes().also { winners -> text.text = if (winners.size > 1) "Tie!" else "${winners[0].name} wins!" }
                 else
-                    text.text = "Your move, ${players[gameState.game.currentPlayer.value]?.name}"
+                    text.text = "Your move, ${users[gameState.game.currentPlayer.value]?.name}"
             }
             else text.text = "Waiting for players... press start when ready."
-            println("OLD: $playerCount - NEW: ${players.size}")
-            if (players.size != playerCount) {
-                playerCount = players.size
-                gameState.updatePlayers(playerCount)
+            println("OLD: $userCount - NEW: ${users.size}")
+            if (users.size != userCount) {
+                userCount = users.size
+                gameState.updatePlayers(userCount)
             }
         }
         gameState.game.currentPlayer.observe(viewLifecycleOwner) { player ->
@@ -93,7 +93,7 @@ class GameFragment : Fragment() {
                 if (gameState.finished)
                     gameState.game.mostBoxes().also { winners -> text.text = if (winners.size > 1) "Tie!" else "${winners[0].name} wins!" }
                 else
-                    text.text = "Your move, ${gameState.players.value[player]?.name}"
+                    text.text = "Your move, ${gameState.users.value[player]?.name}"
             }
             else text.text = "Waiting for players... press start when ready."
         }

@@ -35,6 +35,11 @@ class OptionsFragment : Fragment() {
             isChecked = gameState.randomizeStart.value
             setOnClickListener { gameState.randomizeStart.value = isChecked }
         }
+        /*// Fast Clients
+        with (view.findViewById<SwitchMaterial>(R.id.fastClients)) {
+            isChecked = gameState.fastClients.value
+            setOnClickListener { gameState.fastClients.value = isChecked }
+        }*/
         // Version Label
         view.findViewById<TextView>(R.id.versionLabel)
             .text = "Net-code Version ${NetDot.VMAJOR}.${NetDot.VMINOR}"

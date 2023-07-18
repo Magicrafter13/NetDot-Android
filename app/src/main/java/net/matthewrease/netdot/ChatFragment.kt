@@ -36,10 +36,10 @@ class ChatFragment : Fragment() {
         gameState.game.uiChat.observe(viewLifecycleOwner) { string -> chat.text = string }
 
         // Update master server if player count changes
-        var playerCount: Int = gameState.game.players.size
-        gameState.players.observe(viewLifecycleOwner) { players ->
-            if (players.size != playerCount) {
-                playerCount = players.size
+        var playerCount: Int = gameState.game.users.size
+        gameState.users.observe(viewLifecycleOwner) { users ->
+            if (users.size != playerCount) {
+                playerCount = users.size
                 gameState.updatePlayers(playerCount)
             }
         }
